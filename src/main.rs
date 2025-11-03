@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use axum::body::Body;
 use axum::http::StatusCode;
 use axum::http::header::WWW_AUTHENTICATE;
@@ -63,14 +64,18 @@ async fn main() -> Result<(), ()> {
     #[cfg(debug_assertions)]
     {
         tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::DEBUG)
+            .with_max_level(tracing::Level::TRACE)
             .init();
     }
 
     #[cfg(not(debug_assertions))]
     {
+        let trace_level = tracing::Level::from_str(
+            &std::env::var("LOG_LEVEL").unwrap_or_else(|_| "INFO".to_owned())
+        ).unwrap_or(tracing::Level::INFO);
+
         tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::INFO)
+            .with_max_level(trace_level)
             .init();
     }
 
