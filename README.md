@@ -55,6 +55,9 @@ Optionale Umgebungsvariablen - wenn angegeben wird eine SSL-Verbindung zu Kafka 
 Die Angabe eines Tokens ist verpflichtend und kann entweder über den Parameter `--token` erfolgen, oder über die
 Umgebungsvariable `SECURITY_TOKEN`.
 
+Das Log-Level für HTTP-Requests kann über die Umgebungsvariable `LOG_LEVEL` eingestellt werden und hat den Standardwert
+`INFO`. Mögliche Angaben sind: `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`.
+
 ## HTTP-Requests
 
 Die folgenden Endpunkte sind verfügbar:
