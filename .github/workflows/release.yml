@@ -4,6 +4,9 @@ on:
   push:
     branches: [ 'master' ]
 
+permissions:
+  contents: read
+
 jobs:
   release-please:
     name: run release-please
