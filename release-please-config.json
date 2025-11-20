@@ -3,13 +3,9 @@
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": true,
   "include-v-in-tag": true,
-  "extra-label": "release-please",
+  "include-component-in-tag": false,
   "release-type": "rust",
   "packages": {
-    ".": {
-      "release-type": "rust",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true
-    }
+    ".": { }
   }
 }
