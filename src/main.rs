@@ -69,6 +69,8 @@ async fn main() -> Result<(), ()> {
 
     #[cfg(not(debug_assertions))]
     {
+        use std::str::FromStr;
+
         let trace_level = tracing::Level::from_str(
             &std::env::var("LOG_LEVEL").unwrap_or_else(|_| "INFO".to_owned())
         ).unwrap_or(tracing::Level::INFO);
