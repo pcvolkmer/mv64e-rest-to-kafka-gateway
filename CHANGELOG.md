@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.2.0...v0.3.0) (2025-12-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* update dto lib to version 0.2.0 ([#8](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/8))
+
+### deps
+
+* update dto lib to version 0.2.0 ([#8](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/8)) ([c71d707](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/c71d707c3c22c83c8d859e380b2610ee51677b88))
+
 ## [0.2.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.1.2...v0.2.0) (2025-11-21)
 
 
