@@ -41,7 +41,7 @@ impl MtbFileSender for DefaultMtbFileSender {
         let request_id = Uuid::new_v4();
 
         let record_key = RecordKey {
-            patient_id: mtb.patient.id.to_string(),
+            patient_id: mtb.patient.id.clone(),
         };
 
         let record_headers = OwnedHeaders::default()

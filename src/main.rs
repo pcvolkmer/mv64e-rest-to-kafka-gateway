@@ -72,12 +72,11 @@ async fn main() -> Result<(), ()> {
         use std::str::FromStr;
 
         let trace_level = tracing::Level::from_str(
-            &std::env::var("LOG_LEVEL").unwrap_or_else(|_| "INFO".to_owned())
-        ).unwrap_or(tracing::Level::INFO);
+            &std::env::var("LOG_LEVEL").unwrap_or_else(|_| "INFO".to_owned()),
+        )
+        .unwrap_or(tracing::Level::INFO);
 
-        tracing_subscriber::fmt()
-            .with_max_level(trace_level)
-            .init();
+        tracing_subscriber::fmt().with_max_level(trace_level).init();
     }
 
     if !is_valid_brypt_hash(&CONFIG.token) {
@@ -118,10 +117,14 @@ async fn start_service() -> Result<(), String> {
         if let Some(ssl_key_password) = &CONFIG.ssl_key_password {
             client_config.set("ssl.key.password", ssl_key_password);
         }
-        client_config.create::<FutureProducer>().map_err(|err| err.to_string())?
+        client_config
+            .create::<FutureProducer>()
+            .map_err(|err| err.to_string())?
     } else {
         // Plain
-        client_config.create::<FutureProducer>().map_err(|err| err.to_string())?
+        client_config
+            .create::<FutureProducer>()
+            .map_err(|err| err.to_string())?
     };
 
     let sender = Arc::new(DefaultMtbFileSender::new(&CONFIG.topic, producer));
