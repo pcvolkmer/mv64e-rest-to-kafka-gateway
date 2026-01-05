@@ -1,11 +1,11 @@
-use crate::AppResponse::{Accepted, InternalServerError, Unauthorized, UnsupportedContentType};
 use crate::sender::DynMtbFileSender;
-use crate::{CONFIG, auth};
+use crate::AppResponse::{Accepted, InternalServerError, Unauthorized, UnsupportedContentType};
+use crate::{auth, CONFIG};
 use axum::body::Body;
 use axum::extract::Path;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use axum::http::{HeaderValue, Request};
-use axum::middleware::{Next, from_fn};
+use axum::middleware::{from_fn, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, post};
 use axum::{Extension, Json, Router};
@@ -35,7 +35,10 @@ pub async fn handle_post(
 
 pub fn routes(sender: DynMtbFileSender) -> Router {
     Router::new()
+        // POST requests
         .route("/mtb/etl/patient-record", post(handle_post))
+        // DELETE requests
+        .route("/mtb/etl/patient/{patient_id}", delete(handle_delete))
         .route(
             "/mtb/etl/patient-record/{patient_id}",
             delete(handle_delete),
@@ -113,6 +116,37 @@ mod tests {
     #[tokio::test]
     #[allow(clippy::expect_used)]
     async fn should_handle_delete_request() {
+        let mut sender_mock = MockMtbFileSender::new();
+
+        sender_mock
+            .expect_send()
+            // Expect patient id is set in Kafka record
+            .withf(|mtb| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
+            // Expect no Metadata => no consent in kafka record
+            .withf(|mtb| mtb.metadata.is_none())
+            .return_once(move |_| Ok(String::new()));
+
+        let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
+
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/mtb/etl/patient/fae56ea7-24a7-4556-82fb-2b5dde71bb4d")
+                    .header(AUTHORIZATION, "Basic dG9rZW46dmVyeS1zZWNyZXQ=")
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(Body::empty())
+                    .expect("request built"),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::ACCEPTED);
+    }
+
+    #[tokio::test]
+    #[allow(clippy::expect_used)]
+    async fn should_handle_delete_request_alternative_route() {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock

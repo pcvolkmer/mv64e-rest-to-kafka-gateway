@@ -1,19 +1,19 @@
 use axum::body::Body;
-use axum::http::StatusCode;
 use axum::http::header::WWW_AUTHENTICATE;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use rdkafka::ClientConfig;
 use rdkafka::producer::FutureProducer;
+use rdkafka::ClientConfig;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, LazyLock};
 
 #[cfg(not(test))]
 use clap::Parser;
 
-use crate::AppResponse::{Accepted, Unauthorized, UnsupportedContentType};
 use crate::auth::is_valid_brypt_hash;
 use crate::cli::Cli;
 use crate::sender::DefaultMtbFileSender;
+use crate::AppResponse::{Accepted, Unauthorized, UnsupportedContentType};
 
 mod auth;
 mod cli;
@@ -158,8 +158,8 @@ static CONFIG: LazyLock<Cli> = LazyLock::new(|| Cli {
 
 #[cfg(test)]
 mod tests {
-    use axum::http::StatusCode;
     use axum::http::header::WWW_AUTHENTICATE;
+    use axum::http::StatusCode;
     use axum::response::IntoResponse;
     use uuid::Uuid;
 
@@ -184,5 +184,6 @@ mod tests {
         let response = Unauthorized.into_response();
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
         assert!(response.headers().contains_key(WWW_AUTHENTICATE));
+        assert!(!response.headers().contains_key("x-request-id"));
     }
 }
