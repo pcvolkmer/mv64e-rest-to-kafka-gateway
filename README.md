@@ -60,10 +60,12 @@ Das Log-Level für HTTP-Requests kann über die Umgebungsvariable `LOG_LEVEL` ei
 
 ## HTTP-Requests
 
-Die folgenden Endpunkte sind verfügbar:
+Die folgenden Endpunkte sind analog zur
+Implementierung in DNPM:DIP](https://github.com/dnpm-dip/api-gateway/tree/main/app/controllers) verfügbar:
 
 * **POST** `/mtb/etl/patient-record`: Senden eines MTB-Files
-* **DELETE** `/mtb/etl/patient-record/:patient_id`: Löschen von Informationen zu dem Patienten
+* **DELETE** `/mtb/etl/patient/:patient_id`: Löschen von Informationen zu dem Patienten.
+  Hier kann auch zusätzlich der Endpunkt `/mtb/etl/patient-record/:patient_id` verwendet werden.
 
 Übermittelte MTB-Files müssen erforderliche Bestandteile beinhalten, ansonsten wird die Anfrage zurückgewiesen.
 
@@ -134,7 +136,7 @@ Anfrage auch hier mit *curl*:
 curl -u token:very-secret \
   -H "Content-Type: application/json" \
   -X DELETE \
-  http://localhost:3000/mtb/etl/patient-record/P1
+  http://localhost:3000/mtb/etl/patient/P1
 ```
 
 Antwort:
