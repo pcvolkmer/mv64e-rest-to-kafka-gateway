@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.3.0...v0.4.0) (2026-01-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* add the request method to record header ([#12](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/12))
+
+### Features
+
+* add DELETE endpoint as used in DNPM:DIP ([#10](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/10)) ([b46f392](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/b46f392c37b99edea1945bb6181b23fce8424cfe))
+* add the request method to record header ([#12](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/12)) ([9f72c34](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/9f72c34cc726e4035dfe3c47ad3e33f919e3905e))
+
 ## [0.3.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.2.0...v0.3.0) (2025-12-15)
 
 
