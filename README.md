@@ -126,6 +126,7 @@ Resultierender Kafka-Record:
 * **Key**: `{ "pid" : "P1" }`
 * **Headers**:
     * `requestId`: `1804d5c1-af3d-4f75-81a0-d9ca7c9739ef`
+    * `requestMethod`: `POST`
 * **Value**: `{ "patient": { "id": "fae56ea7-24a7-4556-82fb-2b5dde71bb4d", .... } }`
 
 #### Löschen von Patienten
@@ -153,6 +154,7 @@ Resultierender Kafka-Record:
 * **Key**: `{ "pid" : "P1" }`
 * **Headers**:
     * `requestId`: `8473fa67-8b18-4e8f-aa89-874f74fcc672`
+    * `requestMethod`: `DELETE`
 * **Value**: JSON-String mit Patienten-ID `P1` und ohne weitere Angaben: `{ "patient": { "id": "P1", .... } }`
 
 Es werden keine weiteren patientenbezogenen Daten übermittelt.
