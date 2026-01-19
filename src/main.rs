@@ -1,19 +1,19 @@
 use axum::body::Body;
-use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::StatusCode;
+use axum::http::header::WWW_AUTHENTICATE;
 use axum::response::{IntoResponse, Response};
-use rdkafka::producer::FutureProducer;
 use rdkafka::ClientConfig;
+use rdkafka::producer::FutureProducer;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, LazyLock};
 
 #[cfg(not(test))]
 use clap::Parser;
 
+use crate::AppResponse::{Accepted, Unauthorized, UnsupportedContentType};
 use crate::auth::is_valid_brypt_hash;
 use crate::cli::Cli;
 use crate::sender::DefaultMtbFileSender;
-use crate::AppResponse::{Accepted, Unauthorized, UnsupportedContentType};
 
 mod auth;
 mod cli;
@@ -132,7 +132,10 @@ async fn start_service() -> Result<(), String> {
     match tokio::net::TcpListener::bind(&CONFIG.listen).await {
         Ok(listener) => {
             log::info!("Starting application listening on '{}'", CONFIG.listen);
-            if let Err(err) = axum::serve(listener, routes::routes(sender)).await {
+            if let Err(err) = axum::serve(listener, routes::routes(sender))
+                .with_graceful_shutdown(shutdown_signal())
+                .await
+            {
                 return Err(err.to_string());
             }
         }
@@ -140,6 +143,22 @@ async fn start_service() -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[allow(clippy::expect_used)]
+async fn shutdown_signal() {
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    terminate.await;
 }
 
 // Test Configuration
@@ -158,8 +177,8 @@ static CONFIG: LazyLock<Cli> = LazyLock::new(|| Cli {
 
 #[cfg(test)]
 mod tests {
-    use axum::http::header::WWW_AUTHENTICATE;
     use axum::http::StatusCode;
+    use axum::http::header::WWW_AUTHENTICATE;
     use axum::response::IntoResponse;
     use uuid::Uuid;
 
