@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.0...v0.4.1) (2026-02-03)
+
+
+### Features
+
+* add graceful shutdown ([cfb3216](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/cfb3216b089c46688416040f8c9516f2c3a82ebf))
+
 ## [0.4.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.3.0...v0.4.0) (2026-01-07)
 
 
