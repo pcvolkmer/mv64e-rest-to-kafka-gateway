@@ -129,6 +129,35 @@ Resultierender Kafka-Record:
     * `requestMethod`: `POST`
 * **Value**: `{ "patient": { "id": "fae56ea7-24a7-4556-82fb-2b5dde71bb4d", .... } }`
 
+##### Übermittlung eines MTB-Files mit bestehender Request-ID
+
+```bash
+curl -u token:very-secret \
+  -H "Content-Type: application/json" \
+  -H "X-Request-Id: 1804d5c1-0000-0000-0000-d9ca7c9739ef"
+  --data @test-files/mv64e-mtb-fake-patient.json \
+  http://localhost:3000/mtb/etl/patient-record
+```
+
+Als Content-Type kann auch `application/vnd.dnpm.v2.mtb+json` verwendet werden.
+
+Antwort:
+
+```
+HTTP/1.1 202 Accepted
+x-request-id: 1804d5c1-0000-0000-0000-d9ca7c9739ef
+content-length: ...
+date: Sat, 09 Mar 2024 11:16:44 GMT
+```
+
+Resultierender Kafka-Record:
+
+* **Key**: `{ "pid" : "P1" }`
+* **Headers**:
+  * `requestId`: `1804d5c1-0000-0000-0000-d9ca7c9739ef`
+  * `requestMethod`: `POST`
+* **Value**: `{ "patient": { "id": "fae56ea7-24a7-4556-82fb-2b5dde71bb4d", .... } }`
+
 #### Löschen von Patienten
 
 Anfrage auch hier mit *curl*:
