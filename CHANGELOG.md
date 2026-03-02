@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.0...v0.4.1) (2026-03-02)
+
+
+### Features
+
+* add graceful shutdown ([cfb3216](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/cfb3216b089c46688416040f8c9516f2c3a82ebf))
+* re-use request id from HTTP header ([#15](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/15)) ([291413b](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/291413b7c5683e6941de8d563ad442311c2638ea))
+
 ## [0.4.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.3.0...v0.4.0) (2026-01-07)
 
 
