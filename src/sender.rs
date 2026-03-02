@@ -32,7 +32,7 @@ impl Display for RequestMethod {
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait MtbFileSender {
-    async fn send(&self, mtb: Mtb, method: RequestMethod) -> Result<String, ()>;
+    async fn send(&self, mtb: Mtb, method: RequestMethod, request_id: Option<String>) -> Result<String, ()>;
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -53,8 +53,8 @@ impl DefaultMtbFileSender {
 
 #[async_trait]
 impl MtbFileSender for DefaultMtbFileSender {
-    async fn send(&self, mtb: Mtb, method: RequestMethod) -> Result<String, ()> {
-        let request_id = Uuid::new_v4();
+    async fn send(&self, mtb: Mtb, method: RequestMethod, request_id: Option<String>) -> Result<String, ()> {
+        let request_id = request_id.unwrap_or_else(|| Uuid::new_v4().to_string());
 
         let record_key = RecordKey {
             patient_id: mtb.patient.id.clone(),
