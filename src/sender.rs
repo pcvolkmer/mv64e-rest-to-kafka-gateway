@@ -32,7 +32,12 @@ impl Display for RequestMethod {
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait MtbFileSender {
-    async fn send(&self, mtb: Mtb, method: RequestMethod, request_id: Option<String>) -> Result<String, ()>;
+    async fn send(
+        &self,
+        mtb: Mtb,
+        method: RequestMethod,
+        request_id: Option<String>,
+    ) -> Result<String, ()>;
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -53,7 +58,12 @@ impl DefaultMtbFileSender {
 
 #[async_trait]
 impl MtbFileSender for DefaultMtbFileSender {
-    async fn send(&self, mtb: Mtb, method: RequestMethod, request_id: Option<String>) -> Result<String, ()> {
+    async fn send(
+        &self,
+        mtb: Mtb,
+        method: RequestMethod,
+        request_id: Option<String>,
+    ) -> Result<String, ()> {
         let request_id = request_id.unwrap_or_else(|| Uuid::new_v4().to_string());
 
         let record_key = RecordKey {
@@ -63,7 +73,7 @@ impl MtbFileSender for DefaultMtbFileSender {
         let record_headers = OwnedHeaders::default()
             .insert(Header {
                 key: "requestId",
-                value: Some(&request_id.to_string()),
+                value: Some(&request_id),
             })
             .insert(Header {
                 key: "requestMethod",
@@ -89,7 +99,7 @@ impl MtbFileSender for DefaultMtbFileSender {
                     .await
                     .map_err(|_| ())
                     .map(|_| ())?;
-                Ok(request_id.to_string())
+                Ok(request_id)
             }
             Err(_) => Err(()),
         }
