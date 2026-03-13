@@ -1,19 +1,21 @@
 use axum::body::Body;
-use axum::http::StatusCode;
 use axum::http::header::WWW_AUTHENTICATE;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use rdkafka::ClientConfig;
 use rdkafka::producer::FutureProducer;
+use rdkafka::ClientConfig;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, LazyLock};
 
 #[cfg(not(test))]
 use clap::Parser;
 
-use crate::AppResponse::{Accepted, Unauthorized, UnsupportedContentType};
 use crate::auth::is_valid_brypt_hash;
 use crate::cli::Cli;
 use crate::sender::DefaultMtbFileSender;
+use crate::AppResponse::{
+    Accepted, BadRequest, Unauthorized, UnprocessableContent, UnsupportedContentType,
+};
 
 mod auth;
 mod cli;
@@ -28,17 +30,27 @@ struct RecordKey {
 
 enum AppResponse<'a> {
     Accepted(&'a str),
+    BadRequest,
     Unauthorized,
-    InternalServerError,
     UnsupportedContentType,
+    UnprocessableContent,
+    InternalServerError,
 }
 
 #[allow(clippy::expect_used)]
 impl IntoResponse for AppResponse<'_> {
     fn into_response(self) -> Response {
         match self {
+            BadRequest => (
+                StatusCode::BAD_REQUEST,
+                "This application accepts DNPM data model version 2.1 with content type 'application/json'"
+            ).into_response(),
             UnsupportedContentType => (
                 StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "This application accepts DNPM data model version 2.1 with content type 'application/json'"
+            ).into_response(),
+            UnprocessableContent => (
+                StatusCode::UNPROCESSABLE_ENTITY,
                 "This application accepts DNPM data model version 2.1 with content type 'application/json'"
             ).into_response(),
             _ => match self {
@@ -173,12 +185,13 @@ static CONFIG: LazyLock<Cli> = LazyLock::new(|| Cli {
     ssl_cert_file: None,
     ssl_key_file: None,
     ssl_key_password: None,
+    send_on_invalid: true,
 });
 
 #[cfg(test)]
 mod tests {
-    use axum::http::StatusCode;
     use axum::http::header::WWW_AUTHENTICATE;
+    use axum::http::StatusCode;
     use axum::response::IntoResponse;
     use uuid::Uuid;
 
