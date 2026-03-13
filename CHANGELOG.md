@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.1...v0.4.2) (2026-03-13)
+
+
+### Features
+
+* send (de facto) empty message on invalid JSON input ([#17](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/17)) ([fb8e950](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/fb8e95047cc912648745ae293e2e4b03fc58864c))
+
 ## [0.4.1](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.0...v0.4.1) (2026-03-02)
 
 
