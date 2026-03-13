@@ -1,11 +1,15 @@
-use crate::AppResponse::{Accepted, InternalServerError, Unauthorized, UnsupportedContentType};
 use crate::sender::{DynMtbFileSender, RequestMethod};
-use crate::{CONFIG, auth};
+use crate::AppResponse::{
+    Accepted, BadRequest, InternalServerError, Unauthorized, UnprocessableContent,
+    UnsupportedContentType,
+};
+use crate::{auth, CONFIG};
 use axum::body::Body;
+use axum::extract::rejection::JsonRejection;
 use axum::extract::Path;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use axum::http::{HeaderMap, HeaderValue, Request};
-use axum::middleware::{Next, from_fn};
+use axum::middleware::{from_fn, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, post};
 use axum::{Extension, Json, Router};
@@ -36,20 +40,49 @@ pub async fn handle_delete(
 pub async fn handle_post(
     Extension(sender): Extension<DynMtbFileSender>,
     headers: HeaderMap,
-    Json(mtb_file): Json<Mtb>,
+    payload: Result<Json<Mtb>, JsonRejection>,
 ) -> Response {
-    match sender
-        .send(
-            mtb_file,
-            RequestMethod::Post,
-            headers
-                .get("x-request-id")
-                .map(|v| v.to_str().unwrap_or_default().to_string()),
-        )
-        .await
-    {
-        Ok(request_id) => Accepted(&request_id).into_response(),
-        _ => InternalServerError.into_response(),
+    match payload {
+        Ok(Json(mtb_file)) => {
+            match sender
+                .send(
+                    mtb_file,
+                    RequestMethod::Post,
+                    headers
+                        .get("x-request-id")
+                        .map(|v| v.to_str().unwrap_or_default().to_string()),
+                )
+                .await
+            {
+                Ok(request_id) => Accepted(&request_id).into_response(),
+                _ => InternalServerError.into_response(),
+            }
+        }
+        // JSON error
+        Err(json_rejection) => {
+            if CONFIG.send_on_invalid {
+                return match sender
+                    .send_empty(
+                        RequestMethod::Post,
+                        headers
+                            .get("x-request-id")
+                            .map(|v| v.to_str().unwrap_or_default().to_string()),
+                    )
+                    .await
+                {
+                    Ok(_) => match json_rejection {
+                        JsonRejection::JsonDataError(_) => UnprocessableContent.into_response(),
+                        _ => BadRequest.into_response(),
+                    },
+                    _ => InternalServerError.into_response(),
+                };
+            }
+
+            match json_rejection {
+                JsonRejection::JsonDataError(_) => UnprocessableContent.into_response(),
+                _ => BadRequest.into_response(),
+            }
+        }
     }
 }
 
@@ -111,6 +144,7 @@ mod tests {
 
         sender_mock
             .expect_send()
+            .once()
             .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
             .withf(|_, method, _| method == &RequestMethod::Post)
             .withf(|_, _, request_id| request_id.is_none())
@@ -142,6 +176,7 @@ mod tests {
 
         sender_mock
             .expect_send()
+            .once()
             // Expect patient id is set in Kafka record
             .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
             .withf(|_, method, _| method == &RequestMethod::Delete)
@@ -175,6 +210,7 @@ mod tests {
 
         sender_mock
             .expect_send()
+            .once()
             // Expect patient id is set in Kafka record
             .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
             .withf(|_, method, _| method == &RequestMethod::Delete)
@@ -238,11 +274,10 @@ mod tests {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock
-            .expect_send()
-            .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
-            .withf(|_, method, _| method == &RequestMethod::Post)
-            .withf(|_, _, request_id| request_id.is_none())
-            .return_once(move |_, _, _| Ok(String::new()));
+            .expect_send_empty()
+            .withf(|method, _| method == &RequestMethod::Post)
+            .withf(|_, request_id| request_id.is_none())
+            .return_once(move |_, _| Ok(String::new()));
 
         let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
         let body = Body::from("<test>Das ist ein Test</test>");
@@ -269,11 +304,11 @@ mod tests {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock
-            .expect_send()
-            .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
-            .withf(|_, method, _| method == &RequestMethod::Post)
-            .withf(|_, _, request_id| request_id.is_none())
-            .return_once(move |_, _, _| Ok(String::new()));
+            .expect_send_empty()
+            .once()
+            .withf(|method, _| method == &RequestMethod::Post)
+            .withf(|_, request_id| request_id.is_none())
+            .return_once(move |_, _| Ok(String::new()));
 
         let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
         let body = Body::from("Das ist kein JSON!");
@@ -296,15 +331,15 @@ mod tests {
 
     #[tokio::test]
     #[allow(clippy::expect_used)]
-    async fn should_respond_bad_request_if_not_processable() {
+    async fn should_respond_bad_request_if_not_processable_and_send_empty() {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock
-            .expect_send()
-            .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
-            .withf(|_, method, _| method == &RequestMethod::Post)
-            .withf(|_, _, request_id| request_id.is_none())
-            .return_once(move |_, _, _| Ok(String::new()));
+            .expect_send_empty()
+            .once()
+            .withf(|method, _| method == &RequestMethod::Post)
+            .withf(|_, request_id| request_id.is_none())
+            .return_once(move |_, _| Ok(String::new()));
 
         let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
         let body = Body::from("{}");
@@ -327,11 +362,12 @@ mod tests {
 
     #[tokio::test]
     #[allow(clippy::expect_used)]
-    async fn should_check_authorization_first() {
+    async fn should_check_authorization_first_and_not_send_message() {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock
             .expect_send()
+            .never()
             .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
             .withf(|_, method, _| method == &RequestMethod::Post)
             .withf(|_, _, request_id| request_id.is_none())
@@ -363,6 +399,7 @@ mod tests {
 
         sender_mock
             .expect_send()
+            .once()
             .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
             .withf(|_, method, _| method == &RequestMethod::Post)
             .withf(|_, _, request_id| {
@@ -397,6 +434,7 @@ mod tests {
 
         sender_mock
             .expect_send()
+            .once()
             .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
             .withf(|_, method, _| method == &RequestMethod::Delete)
             .withf(|mtb, _, _| mtb.metadata.is_none())

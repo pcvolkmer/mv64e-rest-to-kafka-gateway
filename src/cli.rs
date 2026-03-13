@@ -54,4 +54,10 @@ pub struct Cli {
     pub ssl_key_file: Option<String>,
     #[arg(long, env = "KAFKA_SSL_KEY_PASSWORD", help = "The SSL key password")]
     pub ssl_key_password: Option<String>,
+    #[arg(
+        long,
+        env = "SEND_ON_INVALID",
+        help = "Send empty message on invalid JSON input"
+    )]
+    pub send_on_invalid: bool,
 }

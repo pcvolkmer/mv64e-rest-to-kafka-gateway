@@ -38,6 +38,12 @@ pub trait MtbFileSender {
         method: RequestMethod,
         request_id: Option<String>,
     ) -> Result<String, ()>;
+
+    async fn send_empty(
+        &self,
+        method: RequestMethod,
+        request_id: Option<String>,
+    ) -> Result<String, ()>;
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -64,10 +70,36 @@ impl MtbFileSender for DefaultMtbFileSender {
         method: RequestMethod,
         request_id: Option<String>,
     ) -> Result<String, ()> {
+        match serde_json::to_string(&mtb) {
+            Ok(json) => {
+                self.send_message(&json, &mtb.patient.id, method, request_id)
+                    .await
+            }
+            Err(_) => Err(()),
+        }
+    }
+
+    async fn send_empty(
+        &self,
+        method: RequestMethod,
+        request_id: Option<String>,
+    ) -> Result<String, ()> {
+        self.send_message("{}", "", method, request_id).await
+    }
+}
+
+impl DefaultMtbFileSender {
+    async fn send_message(
+        &self,
+        payload: &str,
+        patient_id: &str,
+        method: RequestMethod,
+        request_id: Option<String>,
+    ) -> Result<String, ()> {
         let request_id = request_id.unwrap_or_else(|| Uuid::new_v4().to_string());
 
         let record_key = RecordKey {
-            patient_id: mtb.patient.id.clone(),
+            patient_id: patient_id.to_string(),
         };
 
         let record_headers = OwnedHeaders::default()
@@ -86,24 +118,17 @@ impl MtbFileSender for DefaultMtbFileSender {
 
         let record_key = serde_json::to_string(&record_key).map_err(|_| ())?;
 
-        match serde_json::to_string(&mtb) {
-            Ok(json) => {
-                self.producer
-                    .send(
-                        FutureRecord::to(&self.topic)
-                            .key(&record_key)
-                            .headers(record_headers)
-                            .payload(&json),
-                        Duration::from_secs(1),
-                    )
-                    .await
-                    .map_err(|_| ())
-                    .map(|_| ())?;
-                Ok(request_id)
-            }
-            Err(_) => Err(()),
-        }
+        self.producer
+            .send(
+                FutureRecord::to(&self.topic)
+                    .key(&record_key)
+                    .headers(record_headers)
+                    .payload(payload),
+                Duration::from_secs(1),
+            )
+            .await
+            .map_err(|_| ())
+            .map(|_| ())?;
+        Ok(request_id)
     }
 }
-
-impl DefaultMtbFileSender {}

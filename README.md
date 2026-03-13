@@ -35,6 +35,8 @@ Options:
           Key file for SSL connection to Kafka [env: KAFKA_SSL_KEY_FILE=]
       --ssl-key-password <SSL_KEY_PASSWORD>
           The SSL key password [env: KAFKA_SSL_KEY_PASSWORD=]
+      --send-on-invalid
+          Send empty message on invalid JSON input [env: SEND_ON_INVALID=]
 ```
 
 Die Anwendung lässt sich auch mit Umgebungsvariablen konfigurieren.
@@ -51,6 +53,13 @@ Optionale Umgebungsvariablen - wenn angegeben wird eine SSL-Verbindung zu Kafka 
 * `KAFKA_SSL_CERT_FILE`: SSL Certificate Datei
 * `KAFKA_SSL_KEY_FILE`: SSL Key Datei
 * `KAFKA_SSL_KEY_PASSWORD`: SSL KEY Passwort (wenn benötigt)
+
+Um eine eingehende ungültige JSON-Nachricht weiterzuleiten und nachfolgenden Stellen in der ETL-Strecke zu
+signalisieren,
+kann die Umgebungsvariable `SEND_ON_INVALID` auf `true` gesetzt werden.
+Es werden dann Kafka-Records ohne Patienten-ID und mit Payload `{}` gesendet.
+Dies wird im [ETL-Prozessor](https://github.com/pcvolkmer/mv64e-etl-processor) als fehlerhafte Eingabe erkannt und
+protokolliert.
 
 Die Angabe eines Tokens ist verpflichtend und kann entweder über den Parameter `--token` erfolgen, oder über die
 Umgebungsvariable `SECURITY_TOKEN`.
