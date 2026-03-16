@@ -1,15 +1,15 @@
-use crate::sender::{DynMtbFileSender, RequestMethod};
 use crate::AppResponse::{
     Accepted, BadRequest, InternalServerError, Unauthorized, UnprocessableContent,
     UnsupportedContentType,
 };
-use crate::{auth, CONFIG};
+use crate::sender::{DynMtbFileSender, RequestMethod};
+use crate::{CONFIG, auth};
 use axum::body::Body;
-use axum::extract::rejection::JsonRejection;
 use axum::extract::Path;
+use axum::extract::rejection::JsonRejection;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use axum::http::{HeaderMap, HeaderValue, Request};
-use axum::middleware::{from_fn, Next};
+use axum::middleware::{Next, from_fn};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, post};
 use axum::{Extension, Json, Router};
@@ -71,7 +71,9 @@ pub async fn handle_post(
                     .await
                 {
                     Ok(_) => match json_rejection {
-                        JsonRejection::JsonDataError(_) => UnprocessableContent.into_response(),
+                        JsonRejection::JsonDataError(err) => {
+                            UnprocessableContent(err.to_string()).into_response()
+                        }
                         _ => BadRequest.into_response(),
                     },
                     _ => InternalServerError.into_response(),
@@ -79,7 +81,9 @@ pub async fn handle_post(
             }
 
             match json_rejection {
-                JsonRejection::JsonDataError(_) => UnprocessableContent.into_response(),
+                JsonRejection::JsonDataError(err) => {
+                    UnprocessableContent(err.to_string()).into_response()
+                }
                 _ => BadRequest.into_response(),
             }
         }

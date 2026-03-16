@@ -1,21 +1,21 @@
 use axum::body::Body;
-use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::StatusCode;
+use axum::http::header::WWW_AUTHENTICATE;
 use axum::response::{IntoResponse, Response};
-use rdkafka::producer::FutureProducer;
 use rdkafka::ClientConfig;
+use rdkafka::producer::FutureProducer;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, LazyLock};
 
 #[cfg(not(test))]
 use clap::Parser;
 
-use crate::auth::is_valid_brypt_hash;
-use crate::cli::Cli;
-use crate::sender::DefaultMtbFileSender;
 use crate::AppResponse::{
     Accepted, BadRequest, Unauthorized, UnprocessableContent, UnsupportedContentType,
 };
+use crate::auth::is_valid_brypt_hash;
+use crate::cli::Cli;
+use crate::sender::DefaultMtbFileSender;
 
 mod auth;
 mod cli;
@@ -33,7 +33,7 @@ enum AppResponse<'a> {
     BadRequest,
     Unauthorized,
     UnsupportedContentType,
-    UnprocessableContent,
+    UnprocessableContent(String),
     InternalServerError,
 }
 
@@ -49,9 +49,9 @@ impl IntoResponse for AppResponse<'_> {
                 StatusCode::UNSUPPORTED_MEDIA_TYPE,
                 "This application accepts DNPM data model version 2.1 with content type 'application/json'"
             ).into_response(),
-            UnprocessableContent => (
+            UnprocessableContent(err) => (
                 StatusCode::UNPROCESSABLE_ENTITY,
-                "This application accepts DNPM data model version 2.1 with content type 'application/json'"
+                format!("This application accepts DNPM data model version 2.1 with content type 'application/json'. {err}")
             ).into_response(),
             _ => match self {
                 Accepted(request_id) => Response::builder()
@@ -190,8 +190,8 @@ static CONFIG: LazyLock<Cli> = LazyLock::new(|| Cli {
 
 #[cfg(test)]
 mod tests {
-    use axum::http::header::WWW_AUTHENTICATE;
     use axum::http::StatusCode;
+    use axum::http::header::WWW_AUTHENTICATE;
     use axum::response::IntoResponse;
     use uuid::Uuid;
 
