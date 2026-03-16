@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.2...v0.4.3) (2026-03-16)
+
+
+### Features
+
+* send error description with HTTP 422 response ([68cd258](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/68cd258ef09059c6808be57c9abd7c5ba94202e9))
+
 ## [0.4.2](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.1...v0.4.2) (2026-03-13)
 
 
