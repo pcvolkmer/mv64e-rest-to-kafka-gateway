@@ -82,6 +82,7 @@ pub async fn handle_post(
 
             match json_rejection {
                 JsonRejection::JsonDataError(err) => {
+                    log::warn!("Invalid JSON data, sending response:\n'{err}'");
                     UnprocessableContent(err.to_string()).into_response()
                 }
                 _ => BadRequest.into_response(),
