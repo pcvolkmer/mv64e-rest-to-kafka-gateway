@@ -28,7 +28,6 @@ mv64e-mtb-dto = { git = "https://github.com/dnpm-dip/mv64e-mtb-dto-rs", tag = "v
 
 [dev-dependencies]
 tower = "0.5"
-http-body-util = "0.1"
 mockall = "0.14"
 rstest = "0.26"
 

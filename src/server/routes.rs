@@ -1,95 +1,15 @@
-use crate::AppResponse::{
-    Accepted, BadRequest, InternalServerError, Unauthorized, UnprocessableContent,
-    UnsupportedContentType,
-};
-use crate::sender::{DynMtbFileSender, RequestMethod};
+use crate::sender::DynMtbFileSender;
+use crate::server::AppResponse::{Unauthorized, UnsupportedContentType};
+use crate::server::handlers::{handle_delete, handle_post};
 use crate::{CONFIG, auth};
 use axum::body::Body;
-use axum::extract::Path;
-use axum::extract::rejection::JsonRejection;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
-use axum::http::{HeaderMap, HeaderValue, Request};
+use axum::http::{HeaderValue, Request};
 use axum::middleware::{Next, from_fn};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, post};
-use axum::{Extension, Json, Router};
-use mv64e_mtb_dto::Mtb;
+use axum::{Extension, Router};
 use tower_http::trace::TraceLayer;
-
-pub async fn handle_delete(
-    Path(patient_id): Path<String>,
-    Extension(sender): Extension<DynMtbFileSender>,
-    headers: HeaderMap,
-) -> Response {
-    let delete_mtb_file = Mtb::new_with_consent_rejected(&patient_id);
-    match sender
-        .send(
-            delete_mtb_file,
-            RequestMethod::Delete,
-            headers
-                .get("x-request-id")
-                .map(|v| v.to_str().unwrap_or_default().to_string()),
-        )
-        .await
-    {
-        Ok(request_id) => Accepted(&request_id).into_response(),
-        _ => InternalServerError.into_response(),
-    }
-}
-
-pub async fn handle_post(
-    Extension(sender): Extension<DynMtbFileSender>,
-    headers: HeaderMap,
-    payload: Result<Json<Mtb>, JsonRejection>,
-) -> Response {
-    match payload {
-        Ok(Json(mtb_file)) => {
-            match sender
-                .send(
-                    mtb_file,
-                    RequestMethod::Post,
-                    headers
-                        .get("x-request-id")
-                        .map(|v| v.to_str().unwrap_or_default().to_string()),
-                )
-                .await
-            {
-                Ok(request_id) => Accepted(&request_id).into_response(),
-                _ => InternalServerError.into_response(),
-            }
-        }
-        // JSON error
-        Err(json_rejection) => {
-            if CONFIG.send_on_invalid {
-                return match sender
-                    .send_empty(
-                        RequestMethod::Post,
-                        headers
-                            .get("x-request-id")
-                            .map(|v| v.to_str().unwrap_or_default().to_string()),
-                    )
-                    .await
-                {
-                    Ok(_) => match json_rejection {
-                        JsonRejection::JsonDataError(err) => {
-                            UnprocessableContent(err.to_string()).into_response()
-                        }
-                        _ => BadRequest.into_response(),
-                    },
-                    _ => InternalServerError.into_response(),
-                };
-            }
-
-            match json_rejection {
-                JsonRejection::JsonDataError(err) => {
-                    log::warn!("Invalid JSON data, sending response:\n'{err}'");
-                    UnprocessableContent(err.to_string()).into_response()
-                }
-                _ => BadRequest.into_response(),
-            }
-        }
-    }
-}
 
 pub fn routes(sender: DynMtbFileSender) -> Router {
     Router::new()
@@ -156,7 +76,7 @@ mod tests {
             .return_once(move |_, _, _| Ok(String::new()));
 
         let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
-        let body = Body::from(include_str!("../test-files/mv64e-mtb-fake-patient.json"));
+        let body = Body::from(include_str!("../../test-files/mv64e-mtb-fake-patient.json"));
 
         let response = router
             .oneshot(
@@ -255,7 +175,7 @@ mod tests {
             .return_once(move |_, _, _| Ok(String::new()));
 
         let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
-        let body = Body::from(include_str!("../test-files/mv64e-mtb-fake-patient.json"));
+        let body = Body::from(include_str!("../../test-files/mv64e-mtb-fake-patient.json"));
 
         let response = router
             .oneshot(
@@ -413,7 +333,7 @@ mod tests {
             .return_once(move |_, _, _| Ok(String::new()));
 
         let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
-        let body = Body::from(include_str!("../test-files/mv64e-mtb-fake-patient.json"));
+        let body = Body::from(include_str!("../../test-files/mv64e-mtb-fake-patient.json"));
 
         let response = router
             .oneshot(

@@ -687,7 +687,6 @@ dependencies = [
  "base64",
  "bcrypt",
  "clap",
- "http-body-util",
  "log",
  "mockall",
  "mv64e-mtb-dto",
