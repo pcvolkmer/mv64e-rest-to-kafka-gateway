@@ -1,26 +1,18 @@
-use rdkafka::ClientConfig;
-use rdkafka::producer::FutureProducer;
-use serde::{Deserialize, Serialize};
-use std::sync::{Arc, LazyLock};
-
-#[cfg(not(test))]
-use clap::Parser;
-
 use crate::auth::is_valid_brypt_hash;
 use crate::cli::Cli;
 use crate::sender::DefaultMtbFileSender;
 use crate::server::start_server;
+use rdkafka::ClientConfig;
+use rdkafka::producer::FutureProducer;
+use std::sync::{Arc, LazyLock};
 
 mod auth;
 mod cli;
 mod sender;
 mod server;
 
-#[derive(Serialize, Deserialize)]
-struct RecordKey {
-    #[serde(rename = "pid")]
-    patient_id: String,
-}
+#[cfg(not(test))]
+use clap::Parser;
 
 #[cfg(not(test))]
 static CONFIG: LazyLock<Cli> = LazyLock::new(Cli::parse);

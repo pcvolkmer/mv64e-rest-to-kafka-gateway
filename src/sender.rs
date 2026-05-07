@@ -2,17 +2,19 @@ use async_trait::async_trait;
 use mv64e_mtb_dto::Mtb;
 use rdkafka::message::{Header, OwnedHeaders};
 use rdkafka::producer::{FutureProducer, FutureRecord};
+use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
 
-#[cfg(test)]
-use mockall::automock;
-
-use crate::RecordKey;
-
 pub type DynMtbFileSender = Arc<dyn MtbFileSender + Send + Sync>;
+
+#[derive(Serialize, Deserialize)]
+struct RecordKey {
+    #[serde(rename = "pid")]
+    patient_id: String,
+}
 
 #[derive(PartialEq, Debug)]
 pub enum RequestMethod {
@@ -28,6 +30,9 @@ impl Display for RequestMethod {
         }
     }
 }
+
+#[cfg(test)]
+use mockall::automock;
 
 #[cfg_attr(test, automock)]
 #[async_trait]

@@ -354,7 +354,7 @@ mod tests {
 
     #[tokio::test]
     #[allow(clippy::expect_used)]
-    async fn should_use_request_id_from_http_herader_for_delete() {
+    async fn should_use_request_id_from_http_header_for_delete() {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock

@@ -3,7 +3,7 @@ use base64::prelude::BASE64_STANDARD;
 use bcrypt::HashParts;
 use std::str::FromStr;
 
-pub fn split_username_password(auth: &str) -> (String, String) {
+fn split_username_password(auth: &str) -> (String, String) {
     let split = auth.split(':').collect::<Vec<_>>();
     if split.len() == 2 {
         return (split[0].into(), split[1].into());
