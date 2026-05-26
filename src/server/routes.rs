@@ -287,6 +287,40 @@ mod tests {
 
     #[tokio::test]
     #[allow(clippy::expect_used)]
+    async fn should_respond_bad_request_if_invalid_and_send_empty() {
+        let mut sender_mock = MockMtbFileSender::new();
+
+        sender_mock
+            .expect_send_empty()
+            .once()
+            .withf(|method, _| method == &RequestMethod::Post)
+            .withf(|_, request_id| request_id.is_none())
+            .return_once(move |_, _| Ok(String::new()));
+
+        let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
+        let body = Body::from(include_str!(
+            // Missing required position in simple variant
+            "../../test-files/err_mv64e-mtb-fake-patient.json"
+        ));
+
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/mtb/etl/patient-record")
+                    .header(AUTHORIZATION, "Basic dG9rZW46dmVyeS1zZWNyZXQ=")
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(body)
+                    .expect("request built"),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    #[tokio::test]
+    #[allow(clippy::expect_used)]
     async fn should_check_authorization_first_and_not_send_message() {
         let mut sender_mock = MockMtbFileSender::new();
 
