@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.3...v0.4.4) (2026-05-26)
+
+
+### Miscellaneous Chores
+
+* release 0.4.4 ([24e2463](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/24e2463b4ff4438ca59587fd67ffcb144ba69fd6))
+
 ## [0.4.3](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.2...v0.4.3) (2026-03-16)
 
 
