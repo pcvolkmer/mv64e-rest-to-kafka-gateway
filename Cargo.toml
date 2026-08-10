@@ -24,7 +24,7 @@ bcrypt = "0.19"
 rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "curl-static"] }
 async-trait = "0.1"
 # DTOs
-mv64e-mtb-dto = { git = "https://github.com/dnpm-dip/mv64e-mtb-dto-rs", tag = "v0.3.0" }
+mv64e-mtb-model = { git = "https://github.com/pcvolkmer/mv64e-mtb-model" }
 
 [dev-dependencies]
 tower = "0.5"
