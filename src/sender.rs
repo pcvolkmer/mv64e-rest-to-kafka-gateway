@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use mv64e_mtb_dto::Mtb;
+use mv64e_mtb_model::models::PatientRecord;
 use rdkafka::message::{Header, OwnedHeaders};
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use serde::{Deserialize, Serialize};
@@ -39,7 +39,7 @@ use mockall::automock;
 pub trait MtbFileSender {
     async fn send(
         &self,
-        mtb: Mtb,
+        mtb: PatientRecord,
         method: RequestMethod,
         request_id: Option<String>,
     ) -> Result<String, ()>;
@@ -71,7 +71,7 @@ impl DefaultMtbFileSender {
 impl MtbFileSender for DefaultMtbFileSender {
     async fn send(
         &self,
-        mtb: Mtb,
+        mtb: PatientRecord,
         method: RequestMethod,
         request_id: Option<String>,
     ) -> Result<String, ()> {

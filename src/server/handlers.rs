@@ -6,14 +6,14 @@ use axum::extract::rejection::JsonRejection;
 use axum::http::HeaderMap;
 use axum::response::{IntoResponse, Response};
 use axum::{Extension, Json};
-use mv64e_mtb_dto::Mtb;
+use mv64e_mtb_model::models::PatientRecord;
 
 pub async fn handle_delete(
     Path(patient_id): Path<String>,
     Extension(sender): Extension<DynMtbFileSender>,
     headers: HeaderMap,
 ) -> Response {
-    let delete_mtb_file = Mtb::new_with_consent_rejected(&patient_id);
+    let delete_mtb_file = PatientRecord::new_with_consent_rejected(&patient_id);
     match sender
         .send(
             delete_mtb_file,
@@ -32,7 +32,7 @@ pub async fn handle_delete(
 pub async fn handle_post(
     Extension(sender): Extension<DynMtbFileSender>,
     headers: HeaderMap,
-    payload: Result<Json<Mtb>, JsonRejection>,
+    payload: Result<Json<PatientRecord>, JsonRejection>,
 ) -> Response {
     match payload {
         Ok(Json(mtb_file)) => {
