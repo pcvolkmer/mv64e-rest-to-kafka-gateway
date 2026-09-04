@@ -15,20 +15,20 @@ axum = { version = "0.8", features = ["tracing"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
 tokio = { version = "1.52", features = ["rt-multi-thread", "signal"] }
-tower-http = { version = "0.6", features = ["trace"] }
+tower-http = { version = "0.7", features = ["trace"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "1.23", features = ["v4"] }
-base64 = "0.22"
+base64 = "0.23"
 bcrypt = "0.19"
 rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "curl-static"] }
 async-trait = "0.1"
 # DTOs
-mv64e-mtb-model = { git = "https://github.com/pcvolkmer/mv64e-mtb-model" }
+mv64e-mtb-model = { git = "https://github.com/pcvolkmer/mv64e-mtb-model", tag = "v0.5.0" }
 
 [dev-dependencies]
 tower = "0.5"
-mockall = "0.14"
+mockall = "0.15"
 rstest = "0.26"
 
 # Lints
