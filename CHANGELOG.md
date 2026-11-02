@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.5.0...v0.5.1) (2026-11-02)
+
+
+### Miscellaneous Chores
+
+* use mv64e-mtb-model v0.6.0 ([#24](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/24)) ([7a7b29a](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/7a7b29aad734555ee84d381305fdd051f61a4431))
+
 ## [0.5.0](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.4.4...v0.5.0) (2026-09-04)
 
 
