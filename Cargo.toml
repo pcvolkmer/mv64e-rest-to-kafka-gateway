@@ -14,22 +14,22 @@ log = "0.4"
 axum = { version = "0.8", features = ["tracing"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
-tokio = { version = "1.52", features = ["rt-multi-thread", "signal"] }
+tokio = { version = "1.54", features = ["rt-multi-thread", "signal"] }
 tower-http = { version = "0.7", features = ["trace"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-uuid = { version = "1.26", features = ["v4"] }
+uuid = { version = "1.29", features = ["v4"] }
 base64 = "0.23"
 bcrypt = "0.19"
 rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "curl-static"] }
 async-trait = "0.1"
 # DTOs
-mv64e-mtb-model = { git = "https://github.com/pcvolkmer/mv64e-mtb-model", tag = "v0.6.0" }
+mv64e-mtb-model = { git = "https://github.com/pcvolkmer/mv64e-mtb-model", tag = "v0.6.4" }
 
 [dev-dependencies]
 tower = "0.5"
 mockall = "0.15"
-rstest = "0.27"
+rstest = "0.28"
 
 # Lints
 
