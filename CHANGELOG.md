@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.2](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.5.1...v0.5.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* add handling of passwords containing ':' ([#26](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/26)) ([4fa2097](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/4fa20970e278339ea368f73be8b955f5a7483f65))
+* do not require content-type header for delete requests ([#28](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/issues/28)) ([2e812fb](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/commit/2e812fbba297571199a89f2c815a1952d4e07faf))
+
 ## [0.5.1](https://github.com/pcvolkmer/mv64e-rest-to-kafka-gateway/compare/v0.5.0...v0.5.1) (2026-11-02)
 
 
