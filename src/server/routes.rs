@@ -12,17 +12,22 @@ use axum::{Extension, Router};
 use tower_http::trace::TraceLayer;
 
 pub fn routes(sender: DynMtbFileSender) -> Router {
-    Router::new()
+    let post_routes = Router::new()
         // POST requests
         .route("/mtb/etl/patient-record", post(handle_post))
-        // DELETE requests
+        .layer(from_fn(check_content_type_header));
+
+    let delete_routes = Router::new()
         .route("/mtb/etl/patient/{patient_id}", delete(handle_delete))
         .route(
             "/mtb/etl/patient-record/{patient_id}",
             delete(handle_delete),
-        )
+        );
+
+    Router::new()
+        .merge(post_routes)
+        .merge(delete_routes)
         .layer(Extension(sender))
-        .layer(from_fn(check_content_type_header))
         .layer(from_fn(check_basic_auth))
         .layer(TraceLayer::new_for_http())
 }
@@ -119,6 +124,38 @@ mod tests {
                     .uri("/mtb/etl/patient/fae56ea7-24a7-4556-82fb-2b5dde71bb4d")
                     .header(AUTHORIZATION, "Basic dG9rZW46dmVyeS1zZWNyZXQ=")
                     .header(CONTENT_TYPE, "application/json")
+                    .body(Body::empty())
+                    .expect("request built"),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::ACCEPTED);
+    }
+
+    #[tokio::test]
+    #[allow(clippy::expect_used)]
+    async fn should_handle_delete_request_without_content_type() {
+        let mut sender_mock = MockMtbFileSender::new();
+
+        sender_mock
+            .expect_send()
+            .once()
+            .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
+            .withf(|_, method, _| method == &RequestMethod::Delete)
+            .withf(|mtb, _, _| mtb.metadata.is_none())
+            .withf(|_, _, request_id| request_id.is_none())
+            .return_once(move |_, _, _| Ok(String::new()));
+
+        let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
+
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/mtb/etl/patient/fae56ea7-24a7-4556-82fb-2b5dde71bb4d")
+                    .header(AUTHORIZATION, "Basic dG9rZW46dmVyeS1zZWNyZXQ=")
+                    // No Content-Type header
                     .body(Body::empty())
                     .expect("request built"),
             )
@@ -321,7 +358,7 @@ mod tests {
 
     #[tokio::test]
     #[allow(clippy::expect_used)]
-    async fn should_check_authorization_first_and_not_send_message() {
+    async fn should_check_post_authorization_first_and_not_send_message() {
         let mut sender_mock = MockMtbFileSender::new();
 
         sender_mock
@@ -419,5 +456,39 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::ACCEPTED);
+    }
+
+    #[tokio::test]
+    #[allow(clippy::expect_used)]
+    async fn should_check_delete_authorization_first_and_not_send_message() {
+        let mut sender_mock = MockMtbFileSender::new();
+
+        sender_mock
+            .expect_send()
+            .never()
+            .withf(|mtb, _, _| mtb.patient.id.eq("fae56ea7-24a7-4556-82fb-2b5dde71bb4d"))
+            .withf(|_, method, _| method == &RequestMethod::Delete)
+            .withf(|mtb, _, _| mtb.metadata.is_none())
+            .withf(|_, _, request_id| {
+                request_id == &Some("fae56ea7-0000-0000-0000-2b5dde71bb4d".to_string())
+            })
+            .return_once(move |_, _, _| Ok(String::new()));
+
+        let router = routes(Arc::new(sender_mock) as DynMtbFileSender);
+
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/mtb/etl/patient-record/fae56ea7-24a7-4556-82fb-2b5dde71bb4d")
+                    .header(CONTENT_TYPE, "application/json")
+                    .header("x-request-id", "fae56ea7-0000-0000-0000-2b5dde71bb4d")
+                    .body(Body::empty())
+                    .expect("request built"),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
 }
