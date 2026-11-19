@@ -4,9 +4,8 @@ use bcrypt::HashParts;
 use std::str::FromStr;
 
 fn split_username_password(auth: &str) -> (String, String) {
-    let split = auth.split(':').collect::<Vec<_>>();
-    if split.len() == 2 {
-        return (split[0].into(), split[1].into());
+    if let Some((username, password)) = auth.split_once(':') {
+        return (username.into(), password.into());
     }
     ("token".into(), auth.into())
 }
@@ -20,7 +19,8 @@ pub fn is_valid_brypt_hash(auth: &str) -> bool {
 pub fn check_basic_auth(auth_header: &str, expected_token: &str) -> bool {
     let split = auth_header.split(' ').collect::<Vec<_>>();
     if split.len() == 2
-        && split.first().map(|first| first.to_lowercase()) == Some("basic".into())
+        && let Some(first) = split.first()
+        && first.eq_ignore_ascii_case("basic")
         && let Ok(auth) = BASE64_STANDARD.decode(split.last().unwrap_or(&""))
         && let Ok(auth) = String::from_utf8(auth)
     {
@@ -139,6 +139,11 @@ mod tests {
     #[case(
         "$2y$05$3oByqJRY.gB0.I6u1ng7ze/55FZvaIt9blfGvEj4zg6pZJvKC66na",
         ("token".into(), "$2y$05$3oByqJRY.gB0.I6u1ng7ze/55FZvaIt9blfGvEj4zg6pZJvKC66na".into())
+    )]
+    // Password containing colons should split only on the first colon
+    #[case(
+        "user:pass:word",
+        ("user".into(), "pass:word".into())
     )]
     fn should_split_username_tokenhash(#[case] input: &str, #[case] expected: (String, String)) {
         assert_eq!(split_username_password(input), expected);
