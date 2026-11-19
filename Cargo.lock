@@ -689,7 +689,7 @@ dependencies = [
 
 [[package]]
 name = "mv64e-rest-to-kafka-gateway"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "async-trait",
  "axum",
